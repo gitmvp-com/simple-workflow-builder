@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Workflow Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+        }
+
+        .endpoint {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .method.get { background: #61affe; color: white; }
+        .method.post { background: #49cc90; color: white; }
+        .method.put { background: #fca130; color: white; }
+        .method.delete { background: #f93e3e; color: white; }
+
+        .example {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .workflows-list {
+            margin-top: 20px;
+        }
+
+        .workflow-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workflow-item h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .workflow-item p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .badge.active {
+            background: #49cc90;
+            color: white;
+        }
+
+        .badge.inactive {
+            background: #ddd;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Simple Workflow Builder</h1>
+            <p>A simplified MVP version of n8n workflow automation</p>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <h3 id="workflowCount">-</h3>
+                <p>Workflows</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="executionCount">-</h3>
+                <p>Executions</p>
+            </div>
+            <div class="stat-card">
+                <h3>3</h3>
+                <p>Node Types</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 API Endpoints</h2>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 15px; color: #555;">Workflows</h3>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/workflows</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/workflows/:id</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span>/api/workflows</span>
+            </div>
+            <div class="endpoint">
+                <span class="method put">PUT</span>
+                <span>/api/workflows/:id</span>
+            </div>
+            <div class="endpoint">
+                <span class="method delete">DELETE</span>
+                <span>/api/workflows/:id</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span>/api/workflows/:id/execute</span>
+            </div>
+
+            <h3 style="margin-top: 30px; margin-bottom: 15px; color: #555;">Executions</h3>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/executions</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/executions/:id</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📝 Example Workflow</h2>
+            <p style="margin-bottom: 15px;">Create a workflow that fetches user data from an API:</p>
+            <div class="example">curl -X POST http://localhost:3000/api/workflows \\
+  -H "Content-Type: application/json" \\
+  -d '{
+  "name": "Fetch User Data",
+  "nodes": [
+    {
+      "id": "trigger",
+      "type": "manualTrigger",
+      "name": "Manual Trigger",
+      "position": [250, 300]
+    },
+    {
+      "id": "http",
+      "type": "httpRequest",
+      "name": "Get User",
+      "position": [450, 300],
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/users/1",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "set",
+      "type": "set",
+      "name": "Format Data",
+      "position": [650, 300],
+      "parameters": {
+        "values": {
+          "userName": "{{$node.http.json.name}}",
+          "userEmail": "{{$node.http.json.email}}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "trigger": {
+      "main": [[
+        { "node": "http", "type": "main", "index": 0 }
+      ]]
+    },
+    "http": {
+      "main": [[
+        { "node": "set", "type": "main", "index": 0 }
+      ]]
+    }
+  }
+}'</div>
+        </div>
+
+        <div class="card">
+            <h2>🔄 Recent Workflows</h2>
+            <div id="workflowsList" class="workflows-list">
+                <div class="loading">Loading workflows...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔗 Quick Links</h2>
+            <a href="/health" class="button" target="_blank">Health Check</a>
+            <a href="/api/workflows" class="button" target="_blank">View Workflows API</a>
+            <a href="/api/executions" class="button" target="_blank">View Executions API</a>
+            <a href="https://github.com/n8n-io/n8n" class="button" target="_blank">n8n on GitHub</a>
+        </div>
+    </div>
+
+    <script>
+        async function loadStats() {
+            try {
+                const workflowsRes = await fetch('/api/workflows');
+                const workflows = await workflowsRes.json();
+                document.getElementById('workflowCount').textContent = workflows.length;
+
+                const executionsRes = await fetch('/api/executions');
+                const executions = await executionsRes.json();
+                document.getElementById('executionCount').textContent = executions.length;
+
+                displayWorkflows(workflows);
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        function displayWorkflows(workflows) {
+            const container = document.getElementById('workflowsList');
+            
+            if (workflows.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center;">No workflows yet. Create one using the API!</p>';
+                return;
+            }
+
+            container.innerHTML = workflows.slice(0, 5).map(wf => `
+                <div class="workflow-item">
+                    <div>
+                        <h4>${wf.name}</h4>
+                        <p>Nodes: ${wf.nodes.length} | Created: ${new Date(wf.createdAt).toLocaleString()}</p>
+                    </div>
+                    <span class="badge ${wf.active ? 'active' : 'inactive'}">
+                        ${wf.active ? 'Active' : 'Inactive'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        // Load stats on page load
+        loadStats();
+
+        // Refresh every 5 seconds
+        setInterval(loadStats, 5000);
+    </script>
+</body>
+</html>
